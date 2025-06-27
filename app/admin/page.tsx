@@ -19,18 +19,25 @@ export default function AdminPage() {
   const [levelFilter, setLevelFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingWord, setEditingWord] = useState<VocabularyWord | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    word: string;
+    definition: string;
+    pronunciation: string;
+    example: string;
+    level: 'beginner' | 'intermediate' | 'advanced';
+    category: string;
+  }>({
     word: '',
     definition: '',
     pronunciation: '',
     example: '',
-    level: 'beginner' as const,
+    level: 'beginner',
     category: ''
   });
 
   const filteredWords = words.filter(word => {
     const matchesSearch = word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         word.definition.toLowerCase().includes(searchTerm.toLowerCase());
+      word.definition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = levelFilter === 'all' || word.level === levelFilter;
     return matchesSearch && matchesLevel;
   });
@@ -38,8 +45,8 @@ export default function AdminPage() {
   const handleSubmit = () => {
     if (editingWord) {
       // Update existing word
-      setWords(words.map(word => 
-        word.id === editingWord.id 
+      setWords(words.map(word =>
+        word.id === editingWord.id
           ? { ...editingWord, ...formData, createdAt: word.createdAt }
           : word
       ));
@@ -52,7 +59,7 @@ export default function AdminPage() {
       };
       setWords([newWord, ...words]);
     }
-    
+
     resetForm();
     setIsDialogOpen(false);
   };
@@ -93,7 +100,7 @@ export default function AdminPage() {
     { label: 'Advanced', value: words.filter(w => w.level === 'advanced').length, color: 'text-red-600' }
   ];
 
-  const categories = [...new Set(words.map(word => word.category))];
+  const categories = Array.from(new Set(words.map(word => word.category)));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -162,7 +169,7 @@ export default function AdminPage() {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="definition">Definition</Label>
                     <Textarea
@@ -172,7 +179,7 @@ export default function AdminPage() {
                       placeholder="Enter definition"
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="example">Example</Label>
                     <Textarea
@@ -182,7 +189,7 @@ export default function AdminPage() {
                       placeholder="Enter example sentence"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="level">Level</Label>
@@ -232,7 +239,7 @@ export default function AdminPage() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={levelFilter} onValueChange={setLevelFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by level" />
@@ -244,7 +251,7 @@ export default function AdminPage() {
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <div className="flex gap-2">
               <Badge variant="outline">{filteredWords.length} words</Badge>
               <Badge variant="secondary">{categories.length} categories</Badge>
@@ -274,11 +281,11 @@ export default function AdminPage() {
                       {word.definition}
                     </div>
                     <div>
-                      <Badge 
+                      <Badge
                         className={
                           word.level === 'beginner' ? 'bg-green-100 text-green-800' :
-                          word.level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                            word.level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
                         }
                       >
                         {word.level}

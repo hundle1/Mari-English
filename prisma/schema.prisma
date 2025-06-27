@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id // <- Dùng luôn userId từ Clerk
+  name          String
+  archived      String?
+  image         String?
+  email         String    @unique
+  emailVerified DateTime?
+  role          String?   @default("user")
+  englishName   String?
+  title         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userWords UserWord[]
+  folders   FolderWord[]
+}
+
+model VocabularyWord {
+  id            String   @id @default(uuid())
+  word          String
+  definition    String
+  pronunciation String
+  example       String
+  level         Level
+  createdAt     DateTime @default(now())
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  folders FolderWordVocabularyWord[] // Many-to-many
+}
+
+model UserWord {
+  id            String   @id @default(uuid())
+  word          String
+  definition    String
+  pronunciation String
+  example       String
+  level         Level
+  createdAt     DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  folders FolderWordUserWord[] // Many-to-many
+}
+
+model Category {
+  id        String           @id @default(uuid())
+  name      String           @unique
+  type      String? // để mở rộng thêm phân loại nếu cần
+  words     VocabularyWord[]
+  userWords UserWord[]
+}
+
+model FolderWord {
+  id        String   @id @default(uuid())
+  name      String   @default("Untitled")
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  vocabularyWords FolderWordVocabularyWord[]
+  userWords       FolderWordUserWord[]
+}
+
+// Join table: FolderWord <-> VocabularyWord
+model FolderWordVocabularyWord {
+  id               String @id @default(uuid())
+  folderId         String
+  vocabularyWordId String
+
+  folder         FolderWord     @relation(fields: [folderId], references: [id])
+  vocabularyWord VocabularyWord @relation(fields: [vocabularyWordId], references: [id])
+}
+
+// Join table: FolderWord <-> UserWord
+model FolderWordUserWord {
+  id         String @id @default(uuid())
+  folderId   String
+  userWordId String
+
+  folder   FolderWord @relation(fields: [folderId], references: [id])
+  userWord UserWord   @relation(fields: [userWordId], references: [id])
+}
+
+enum Level {
+  beginner
+  intermediate
+  advanced
+}
